@@ -1,12 +1,59 @@
-import './App.css'
+import { useState, useEffect } from "react";
+import { DataTable, type DataTableStateEvent } from "primereact/datatable";
+import { Column } from "primereact/column";
+import { fetchArtworks, type Artwork } from "./services/api";
+import "primereact/resources/themes/lara-light-indigo/theme.css";
+import "primereact/resources/primereact.min.css";
+import "primeicons/primeicons.css";
 
-function App() {
+export default function App() {
+  const [artworks, setArtworks] = useState<Artwork[]>([]);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [first, setFirst] = useState(0);
+
+  const loadArtworks = async (pageIndex: number) => {
+    setLoading(true);
+    try {
+      const response = await fetchArtworks(pageIndex + 1);
+      setArtworks(response.data);
+      setTotalRecords(response.pagination.total);
+    } catch (error) {
+      console.error("failed to load artworks", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const pageIndex = first / 12;
+    loadArtworks(pageIndex);
+  }, [first]);
+
+  const onPageChange = (event: DataTableStateEvent) => {
+    setFirst(event.first);
+  };
 
   return (
-    <>    
-      <h1>hello</h1>
-    </>
-  )
+    <div style={{ padding: "2rem" }}>
+      <DataTable
+        value={artworks}
+        lazy
+        paginator
+        first={first}
+        rows={12}
+        totalRecords={totalRecords}
+        onPage={onPageChange}
+        loading={loading}
+        dataKey="id"
+      >
+        <Column field="title" header="Title" />
+        <Column field="place_of_origin" header="Place of Origin" />
+        <Column field="artist_display" header="Artist" />
+        <Column field="inscriptions" header="Inscriptions" />
+        <Column field="date_start" header="Start Date" />
+        <Column field="date_end" header="End Date" />
+      </DataTable>
+    </div>
+  );
 }
-
-export default App
