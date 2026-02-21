@@ -33,7 +33,10 @@ export const fetchArtworks = async (page: number): Promise<ApiResponse> => {
 
     const data = await response.json();
 
-    return data;
+    return {
+      pagination: data.pagination,
+      data: data.data,
+    };
   } catch (error) {
     console.error("Error fetching artworks:", error);
     throw error;
